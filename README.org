@@ -1,0 +1,19 @@
+* Map Sprite Packer
+
+Bundles SVG icons into a single PNG sprite and a lookup table (as
+JSON) for Maplibre/Mapbox. Mainly used with Nix for reproducible map
+styles.
+
+** Example
+
+Building the sprites of [[https://github.com/maputnik/osm-liberty][osm-liberty]].
+
+#+BEGIN_SRC shell
+  git clone https://github.com/maputnik/osm-liberty
+  cd osm-liberty
+  nix run github:jmpunkt/map-sprite-packer -- --svgs svgs/svgs_iconset --svgs svgs/svgs_not_in_iconset --width 600 --height 500 --output out
+#+END_SRC
+
+The directory ~out~ contains the PNG and JSON files. Notice that there
+are two versions, one with scale ~1.0~ and one with scale
+~2.0~.
