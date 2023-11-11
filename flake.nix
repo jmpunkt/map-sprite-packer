@@ -22,9 +22,10 @@
     rustOverwrite = anyRustToolchain: anyRustToolchain.override {extensions = ["rust-src" "rust-analyzer-preview"];};
     buildRustPkgs = pkgs:
       pkgs.rustBuilder.makePackageSet {
-        rustVersion = "1.67.1";
+        rustVersion = "1.73.0";
         packageFun = import ./Cargo.nix;
         workspaceSrc = ./.;
+        ignoreLockHash = false;
       };
     buildForSystem = system: let
       overlays = [rust-overlay.overlays.default cargo2nix.overlays.default self.overlays.default];

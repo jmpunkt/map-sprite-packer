@@ -6,16 +6,16 @@ use std::{
 };
 
 use argh::FromArgs;
-use resvg::{
-    tiny_skia,
-    usvg::{
-        self, utils::view_box_to_transform, Group, Node, NodeKind, Size, Transform, Tree, ViewBox,
-    },
-    usvg_text_layout::{
-        fontdb::{self, Database},
-        TreeTextToPath,
-    },
+use resvg::tiny_skia;
+use usvg::{
+    self, utils::view_box_to_transform, Group, Node, NodeKind, Size, Transform, Tree, TreeParsing,
+    ViewBox,
 };
+use usvg_text_layout::{
+    fontdb::{self, Database},
+    TreeTextToPath,
+};
+
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -30,21 +30,21 @@ struct SpriteEntity {
 
 struct CombinedEntity {
     node: Node,
-    width: f64,
-    height: f64,
+    width: f32,
+    height: f32,
     view_box: ViewBox,
 }
 
 struct Combined {
     width: i32,
     height: i32,
-    scale: f64,
+    scale: f32,
     font: Database,
     entities: HashMap<String, CombinedEntity>,
 }
 
 impl Combined {
-    pub fn new(scale: f64, width: i32, height: i32) -> Self {
+    pub fn new(scale: f32, width: i32, height: i32) -> Self {
         let mut fontdb = fontdb::Database::new();
         fontdb.load_system_fonts();
 
@@ -61,8 +61,8 @@ impl Combined {
         &mut self,
         name: String,
         node: Node,
-        width: f64,
-        height: f64,
+        width: f32,
+        height: f32,
         view_box: ViewBox,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if self.entities.contains_key(&name) {
@@ -163,19 +163,19 @@ impl Combined {
                             view_box_to_transform(
                                 entity.view_box.rect,
                                 entity.view_box.aspect,
-                                Size::new(entity.width, entity.height).unwrap(),
+                                Size::from_wh(entity.width, entity.height).unwrap(),
                             )
                         },
                         ..Default::default()
                     }));
 
                     let group_position = Node::new(NodeKind::Group(Group {
-                        transform: Transform::new_translate(rect.x().into(), rect.y().into()),
+                        transform: Transform::from_translate(rect.x() as f32, rect.y() as f32),
                         ..Default::default()
                     }));
 
                     let group_scale = Node::new(NodeKind::Group(Group {
-                        transform: Transform::new_scale(self.scale, self.scale),
+                        transform: Transform::from_scale(self.scale, self.scale),
                         ..Default::default()
                     }));
 
@@ -199,12 +199,12 @@ impl Combined {
             }
         }
 
-        let size = Size::new(bin.width().into(), bin.height().into()).unwrap();
+        let size = Size::from_wh(bin.width() as f32, bin.height() as f32).unwrap();
         let tree = Tree {
             root,
             size,
             view_box: usvg::ViewBox {
-                rect: size.to_rect(0.0, 0.0),
+                rect: size.to_non_zero_rect(0.0, 0.0),
                 aspect: usvg::AspectRatio::default(),
             },
         };
@@ -222,18 +222,10 @@ impl Packed {
     pub fn to_png(&self, output: &Path, suffix: &str) -> Result<(), Box<dyn std::error::Error>> {
         let filename = format!("sprite{}.png", suffix);
         let output_png = output.join(filename);
-        let pixmap_size = self.tree.size.to_screen_size();
+        let pixmap_size = self.tree.size.to_int_size();
         let mut pixmap = tiny_skia::Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
-        if resvg::render(
-            &self.tree,
-            usvg::FitTo::Original,
-            tiny_skia::Transform::default(),
-            pixmap.as_mut(),
-        )
-        .is_none()
-        {
-            return Err(format!("renderer failed").into());
-        }
+        let tree = resvg::Tree::from_usvg(&self.tree);
+        tree.render(tiny_skia::Transform::default(), &mut pixmap.as_mut());
         pixmap.save_png(output_png)?;
 
         Ok(())

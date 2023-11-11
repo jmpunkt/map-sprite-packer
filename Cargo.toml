@@ -11,7 +11,9 @@ repository = "https://github.com/jmpunkt/map-sprite-packer"
 
 [dependencies]
 argh = "0.1.10"
-resvg = "0.29.0"
+resvg = "0.36.0"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93"
 binpack2d = "1.0.1"
+usvg-text-layout = "0.36.0"
+usvg = "0.36.0"
