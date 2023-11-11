@@ -42,7 +42,7 @@
       apps = {
         default = {
           type = "app";
-          program = "${self.apps.${system}.default}/bin/map-sprite-packer";
+          program = "${self.packages.${system}.default}/bin/map-sprite-packer";
         };
       };
     };
