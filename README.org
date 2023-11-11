@@ -17,3 +17,5 @@ Building the sprites of [[https://github.com/maputnik/osm-liberty][osm-liberty]]
 The directory ~out~ contains the PNG and JSON files. Notice that there
 are two versions, one with scale ~1.0~ and one with scale
 ~2.0~.
+
+Afterwards you might want to optimize the PNG.
