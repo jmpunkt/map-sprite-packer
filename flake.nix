@@ -49,8 +49,14 @@
   in
     (utils.lib.eachDefaultSystem buildForSystem)
     // {
-      overlays.default = final: prev: {
-        map-sprite-packer = ((buildRustPkgs prev).workspace.map-sprite-packer {}).bin;
+      overlays = {
+        default = nixpkgs.lib.composeManyExtensions [
+          cargo2nix.overlays.default
+          self.overlays.packages
+        ];
+        packages = final: prev: {
+          map-sprite-packer = ((buildRustPkgs prev).workspace.map-sprite-packer {}).bin;
+        };
       };
     };
 }
